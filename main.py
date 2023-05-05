@@ -5,6 +5,7 @@
 import base64
 from fastapi import FastAPI, File, UploadFile, Request
 from fastapi.middleware.cors import CORSMiddleware  # LOCAL USE ONLY
+from Controllers import audioController as audioCtrl
 
 app = FastAPI()
 
