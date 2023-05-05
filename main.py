@@ -2,9 +2,8 @@
 @Authors:   RENE Kevin Walson; EL HABACHI Oussama; SINGH Manveer
 @Purpose:   API, main file, in run, waiting for requests
 """
-
-from Class.Audio import *
-from fastapi import FastAPI, File, UploadFile
+import base64
+from fastapi import FastAPI, File, UploadFile, Request
 from fastapi.middleware.cors import CORSMiddleware  # LOCAL USE ONLY
 
 app = FastAPI()
@@ -26,9 +25,12 @@ app.add_middleware(
 
 
 @app.post("/audio")
-async def read_item(sound: Audio):
-    # print(sound.sound)
-    return sound
+async def read_item(base64_audio: Request):
+    # Récupère le son en json
+    json_data = await base64_audio.json()
+    # Décode le son base64 en donées binaire
+    audio_bytes = base64.b64decode(json_data["data"])
+    print(audio_bytes)
 
 
 @app.post('/upload')
