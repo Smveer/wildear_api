@@ -11,6 +11,7 @@ def create_webm(audio: Audio):
     with open(audio.path, "wb") as f:
         f.write(audio.data)
     f.close()
+    return audio
 
 """
     1 - Convert .webm file to .Wav file with ffmpeg
@@ -20,6 +21,12 @@ def create_webm(audio: Audio):
 def convert_webm_to_wav(audio: Audio):
     # Conversion avec ffmpeg
     subprocess.run(["ffmpeg", "-i", audio.path, "-vn", "-acodec", "pcm_s16le", "-ar", "44100", "-ac", "2", "Data/audio.wav"])
+
+    # Supprime le fichier .webm
+    os.remove(audio.path)
+
+    # Change the path to the .wav
+    audio.set_path("Data/audio.wav")
 
     # Convertie le channel stereo(2) en mono(1) pour création spectrogramme
     sound = convert_stereo_to_mono(audio)
@@ -41,11 +48,7 @@ def convert_webm_to_wav(audio: Audio):
     # Export l'audio
     sound.export("Data/audio.wav", format="wav")
 
-    # Supprime le fichier .webm
-    os.remove(audio.path)
-
-    # Change the path to the .wav
-    audio.set_path("Data/audio.wav")
+    return audio
 
 """
     Convert stereo chanel (2) to Mono channel (1) usefull for spectogram
@@ -67,7 +70,6 @@ def create_segments(audio : Audio):
     # Sauvegarder chaque partie dans un fichier
     i = 0
     for part in parts:
-        print(f"tour : {i}")
         part.export(f"Data/segment_{i}.wav", format="wav")
         i += 1
 
