@@ -2,6 +2,7 @@
 @Authors:   RENE Kevin Walson; EL HABACHI Oussama; SINGH Manveer
 @Purpose:   API, main file, in run, waiting for requests
 """
+import ctypes
 import base64
 from fastapi import FastAPI, File, UploadFile, Request
 from fastapi.middleware.cors import CORSMiddleware  # LOCAL USE ONLY
@@ -25,6 +26,9 @@ app.add_middleware(
 )
 # LOCAL USE ONLY - END
 
+# LOAD WD LIBRARY
+wd = ctypes.CDLL(r"Library/target/debug/libLibrary.dylib")
+
 
 @app.post("/audio")
 async def read_item(base64_audio: Request):
@@ -46,8 +50,14 @@ async def read_item(base64_audio: Request):
 
     # Create segments and delete .wav
     audioController.create_segments(audio)
+
+    # Tests library
+    wd.add.argtypes = [ctypes.c_int32, ctypes.c_int32]
+
+    a = wd.add(2, 3)
+    print(f"LIBRARY : {a}")
     
-    return "Segments created !"
+    return a
 
 
 @app.post('/upload')
