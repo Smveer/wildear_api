@@ -3,6 +3,13 @@ import os
 from pydub import AudioSegment
 from Models.Audio import Audio
 
+# for data transformation
+import numpy as np
+# for visualizing the data
+import matplotlib.pyplot as plt
+# for opening the media file
+import scipy.io.wavfile as wavfile
+
 """
     Create .webm file with binary sound
 """
@@ -79,7 +86,12 @@ def convert_stereo_to_mono(audio: Audio):
 """
 
 
-def create_segments(audio: Audio):
+def create_image_segments_from_audio(audio: Audio):
+    # Put matplotlib figure image at 50px*50px
+    plt.figure(figsize=(0.5, 0.5))  # -> 1px = 0.01
+    # We don"t want to see axis, so we turn off axis
+    plt.axis("off")
+
     # Get sound from file
     sound = AudioSegment.from_wav(audio.path)
 
@@ -89,16 +101,26 @@ def create_segments(audio: Audio):
     # Save each piece into a file
     i = 1
     for piece in pieces:
-        piece.export(
-            f"{audio.get_directory_path_from_path()}"
-            f"/"
-            f"{audio.get_filename_from_path(False)}"
-            f"_"
-            f"{i}"
-            f"."
-            f"{audio.get_file_extension_from_path()}"
-            , format=audio.get_file_extension_from_path())
-        i += 1  # increment to save next piece name file
+        # Create path for file thanks to i
+        path = audio.get_directory_path_from_path() + "/" + audio.get_filename_from_path(False) + "_" + str(i) + "."
 
-    # Delete the original .wav file
+        # Create file for audio segment
+        piece.export(path + audio.get_file_extension_from_path(), format=audio.get_file_extension_from_path())
+
+        # After creating audio file, read file to get information
+        audio_rate, audio_data = wavfile.read(path + audio.get_file_extension_from_path())
+
+        # Delete audio file, we don"t need it again
+        os.remove(path + audio.get_file_extension_from_path())
+
+        # Create spectrogram thanks to audio information received just before
+        plt.specgram(audio_data, Fs=audio_rate)
+
+        # Save file with png extension
+        plt.savefig(path + "png")
+
+        # increment to save next piece name file
+        i += 1
+
+    # Delete the original .wav file (non-segmented one)
     os.remove(audio.path)

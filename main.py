@@ -45,7 +45,7 @@ async def read_item(base64_audio: Request):
     audio = audioController.convert_webm_to_wav(audio)
 
     # Create segments and delete .wav
-    audioController.create_segments(audio)
+    audioController.create_image_segments_from_audio(audio)
     
     return "Segments created !"
 
