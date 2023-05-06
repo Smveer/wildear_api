@@ -5,6 +5,8 @@
 import base64
 from fastapi import FastAPI, File, UploadFile, Request
 from fastapi.middleware.cors import CORSMiddleware  # LOCAL USE ONLY
+from Controllers import audioController
+from Models.Audio import Audio
 
 app = FastAPI()
 
@@ -26,11 +28,26 @@ app.add_middleware(
 
 @app.post("/audio")
 async def read_item(base64_audio: Request):
-    # Récupère le son en json
-    json_data = await base64_audio.json()
-    # Décode le son base64 en donées binaire
-    audio_bytes = base64.b64decode(json_data["data"])
-    print(audio_bytes)
+    directory = "Data"
+    audio_name = "sample"
+    extension = ".webm"
+
+    # Init the audio from json received
+    audio = Audio(await base64_audio.json())
+
+    # Set path to audio, add "/" between directory path and filename
+    audio.set_path(directory + "/" + audio_name + extension)
+
+    # Create the .webm file
+    audioController.create_webm(audio)
+
+    # Convert .webm to .wav
+    audio = audioController.convert_webm_to_wav(audio)
+
+    # Create segments and delete .wav
+    audioController.create_image_segments_from_audio(audio)
+    
+    return "Segments created !"
 
 
 @app.post('/upload')
