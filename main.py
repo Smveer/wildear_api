@@ -28,8 +28,18 @@ app.add_middleware(
 
 @app.post("/audio")
 async def read_item(base64_audio: Request):
+    # Init the audio
     audio = Audio(await base64_audio.json())
-    print(audio.data)
+
+    # Create the .webm file
+    audioController.create_webm(audio)
+
+    # Convert .webm to .wav
+    audioController.convert_webm_to_wav(audio)
+
+    # Create segments and delete .wav
+    audioController.create_segments(audio)
+    return "ok !"
 
 
 @app.post('/upload')

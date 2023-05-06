@@ -16,11 +16,11 @@ class Audio:
         self.path = None
         self.extension = None
         if json_dic:
-            if json_dic["data"]:
+            if "data" in json_dic:
                 self.set_data(json_dic["data"])
-            if json_dic["path"]:
+            if "path" in json_dic:
                 self.set_path(json_dic["path"])
-            if json_dic["extension"]:
+            if "extension" in json_dic:
                 self.set_extension(json_dic["extension"])
             self.change_data_format_from_b64_into_b2()
 
