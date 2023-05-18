@@ -1,3 +1,7 @@
+use std::ptr::null;
+use std::slice;
+use rand::Rng;
+
 #[no_mangle]
 extern "C" fn add(a: i32, b: i32) -> i32 {
     a + b
@@ -38,6 +42,68 @@ struct MLP {
     deltas: Vec<Vec<f32>>,
 }
 
+struct LinearRegressionModel  {
+    coefficient: f64,
+    constant: f64,
+}
+
+#[no_mangle]
+extern "C" fn create_linear_regression_model() -> *mut LinearRegressionModel{
+    let mut rng = rand::thread_rng();
+
+    let model= Box::new(LinearRegressionModel {
+        coefficient: rng.gen::<f64>(),
+        constant: rng.gen::<f64>(),
+    });
+
+    let leaked = Box::leak(model);
+    leaked
+}
+#[no_mangle]
+extern "C" fn delete_linear_regression_model(model: *mut LinearRegressionModel) {
+    unsafe {
+        let _ = Box::from_raw(model);
+    }
+}
+
+#[no_mangle]
+extern "C" fn train_linear_regression_model(
+    model: *mut LinearRegressionModel,
+    dataset_input: *const f64,
+    predict_output: *const f64,
+    len: usize,
+){
+    // ------------ Methode of Ordinary Least Squares : exact answer ------------
+
+    // Create local variable to use in RUST from Python
+    let model = unsafe { &mut *model };
+    let input_slice = unsafe { slice::from_raw_parts(dataset_input,len) };
+    let output_slice = unsafe{ slice::from_raw_parts(predict_output, len) };
+
+    // Calc sum of the input & output array
+    let sum_input = input_slice.iter().sum::<f64>();
+    let sum_output = output_slice.iter().sum::<f64>();
+    let sum = input_slice.iter().zip(output_slice.iter()).map(|(&x,&y)| x*y).sum::<f64>();
+    let sum_input_squared = input_slice.iter().map(|&x| x * x).sum::<f64>();
+
+    // Calc of means
+    let mean_input = sum_input / len as f64;
+    let mean_output = sum_output / len as f64;
+
+    // Calc numerator & denominator
+    let numerator = sum - len as f64 * mean_input * mean_output;
+    let denominator = sum_input_squared - len as f64 * mean_input * mean_output;
+
+    // Set coefficient & constant of the model
+    model.coefficient = numerator / denominator;
+    model.constant = mean_output - model.coefficient * mean_input;
+
+
+    // ------------ Methode of Stochastic Gradient Descent : approximate answer (good for lot of data) ------------
+    // Get the function cost
+    // Function Cost : 1/2m x somme(i to m) x (F - Y)
+    // Calc the gradient a & b
+}
 
 #[no_mangle]
 extern "C" fn create_mlp_model(arr: *mut i32, arr_len: i32) -> *mut MLP {
