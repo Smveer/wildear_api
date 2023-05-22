@@ -1,4 +1,3 @@
-use std::ptr::null;
 use std::slice;
 use rand::Rng;
 
@@ -103,6 +102,12 @@ extern "C" fn train_linear_regression_model(
     // Get the function cost
     // Function Cost : 1/2m x somme(i to m) x (F - Y)
     // Calc the gradient a & b
+}
+
+#[no_mangle]
+extern "C" fn predict_linear_regression_model(model: *mut LinearRegressionModel, x: f64) -> f64 {
+    let model = unsafe { &mut *model};
+    model.constant + model.coefficient * x
 }
 
 #[no_mangle]
