@@ -70,12 +70,12 @@ extern "C" fn train_linear_regression_model(
     model: *mut LinearRegressionModel,
     dataset_input: *const f64,
     predict_output: *const f64,
-    len: usize,
+    len: usize
 ){
     // ------------ Methode of Ordinary Least Squares : exact answer ------------
 
     // Create local variable to use in RUST from Python
-    let model = unsafe { &mut *model };
+    let mut model = unsafe { &mut *model };
     let input_slice = unsafe { slice::from_raw_parts(dataset_input,len) };
     let output_slice = unsafe{ slice::from_raw_parts(predict_output, len) };
 
@@ -107,7 +107,7 @@ extern "C" fn train_linear_regression_model(
 #[no_mangle]
 extern "C" fn predict_linear_regression_model(model: *mut LinearRegressionModel, x: f64) -> f64 {
     let model = unsafe { &mut *model};
-    model.constant + model.coefficient * x
+    model.coefficient * x + model.constant
 }
 
 #[no_mangle]
