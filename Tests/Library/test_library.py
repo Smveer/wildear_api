@@ -30,13 +30,19 @@ print(f"LIBRARY : {a}")
 model: LinearRegressionModel = wd.create_linear_regression_model()
 print(f"MODEL Coeff: {model.coefficient} | constant : {model.constant}")
 
-X = [[1.0], [2.0]]
-Y = [[2.0], [3.0]]
+X = np.array([[1.0], [2]], dtype=np.float64)
+Y = np.array([2.0, 3.0], dtype=np.float64)
 # conversion en c
-c_X = (ctypes.c_double * len(X))(*X)
-c_Y = (ctypes.c_double * len(Y))(*Y)
+# c_X = (ctypes.c_double * len(X))(*X)
+# c_Y = (ctypes.c_double * len(Y))(*Y)
 
-wd.train_linear_regression_model(model, c_X, c_Y, len(X))
+cx = X.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
+cy = Y.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
+
+wd.train_linear_regression_model(ctypes.byref(model), cx, cy, len(X))
 print(f"Après entrainement \nModel Coeff: {model.coefficient} | constant : {model.constant}")
+
+predicted = wd.predict_linear_regression_model(ctypes.byref(model), ctypes.c_double(1.0))
+print(f"Predict : {predicted}")
 
 wd.delete_linear_regression_model(model)

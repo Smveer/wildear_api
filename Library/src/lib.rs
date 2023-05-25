@@ -41,7 +41,8 @@ struct MLP {
     deltas: Vec<Vec<f32>>,
 }
 
-struct LinearRegressionModel  {
+#[repr(C)]
+pub struct LinearRegressionModel  {
     coefficient: f64,
     constant: f64,
 }
@@ -51,8 +52,8 @@ extern "C" fn create_linear_regression_model() -> *mut LinearRegressionModel{
     let mut rng = rand::thread_rng();
 
     let model= Box::new(LinearRegressionModel {
-        coefficient: rng.gen::<f64>(),
-        constant: rng.gen::<f64>(),
+        coefficient: 0.0,
+        constant: 0.0,
     });
 
     let leaked = Box::leak(model);
