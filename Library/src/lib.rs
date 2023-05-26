@@ -80,22 +80,23 @@ extern "C" fn train_linear_regression_model(
     let input_slice = unsafe { slice::from_raw_parts(dataset_input,len) };
     let output_slice = unsafe{ slice::from_raw_parts(predict_output, len) };
 
-    // Calc sum of the input & output array
-    let sum_input = input_slice.iter().sum::<f64>();
-    let sum_output = output_slice.iter().sum::<f64>();
-    let sum = input_slice.iter().zip(output_slice.iter()).map(|(&x,&y)| x*y).sum::<f64>();
-    let sum_input_squared = input_slice.iter().map(|&x| x * x).sum::<f64>();
-
     // Calc of means
-    let mean_input = sum_input / len as f64;
-    let mean_output = sum_output / len as f64;
+    let mean_input = input_slice.iter().sum::<f64>() / len as f64;
+    let mean_output = output_slice.iter().sum::<f64>() / len as f64;
 
-    // Calc numerator & denominator
-    let numerator = sum - len as f64 * mean_input * mean_output;
-    let denominator = sum_input_squared - len as f64 * mean_input * mean_output;
+    // Calc of gap
+    let mut sum_gap= 0.0;
+    let mut sum_squared= 0.0;
+
+    for i in 0..len {
+        let deviation_x = input_slice[i] - mean_input;
+        let deviation_y = output_slice[i] - mean_output;
+        sum_gap += deviation_x * deviation_y;
+        sum_squared += deviation_x * deviation_x;
+    }
 
     // Set coefficient & constant of the model
-    model.coefficient = numerator / denominator;
+    model.coefficient = sum_gap / sum_squared;
     model.constant = mean_output - model.coefficient * mean_input;
 
 

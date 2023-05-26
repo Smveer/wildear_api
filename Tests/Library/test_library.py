@@ -13,7 +13,7 @@ class LinearRegressionModel(ctypes.Structure):
     ]
 
 
-# Init library
+# Init argument & return of all Rust function
 wd.add.argtype = [ctypes.c_int32, ctypes.c_int32]
 wd.create_linear_regression_model.restype = LinearRegressionModel
 wd.train_linear_regression_model.argtype = [
@@ -22,27 +22,31 @@ wd.train_linear_regression_model.argtype = [
     ctypes.POINTER(ctypes.c_double),
     ctypes.c_size_t
 ]
+wd.predict_linear_regression_model.argtype = [LinearRegressionModel, ctypes.c_double]
+wd.predict_linear_regression_model.restype = ctypes.c_double
 wd.delete_linear_regression_model.argtype = [LinearRegressionModel]
 
-a = wd.add(2, 3)
-print(f"LIBRARY : {a}")
-
+# Model creation
 model: LinearRegressionModel = wd.create_linear_regression_model()
-print(f"MODEL Coeff: {model.coefficient} | constant : {model.constant}")
+print(f"------ INITIALISATION ------ \nf(x) = {model.coefficient} * x + {model.constant}")
 
+# Set Datas
 X = np.array([[1.0], [2]], dtype=np.float64)
 Y = np.array([2.0, 3.0], dtype=np.float64)
-# conversion en c
-# c_X = (ctypes.c_double * len(X))(*X)
-# c_Y = (ctypes.c_double * len(Y))(*Y)
 
+# Convert datas to C for be able to use them in Library
 cx = X.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
 cy = Y.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
 
+# Model training
 wd.train_linear_regression_model(ctypes.byref(model), cx, cy, len(X))
-print(f"Après entrainement \nModel Coeff: {model.coefficient} | constant : {model.constant}")
+print(f"\n------ TRAINING ------ \nf(x) = {model.coefficient} * x + {model.constant}")
 
-predicted = wd.predict_linear_regression_model(ctypes.byref(model), ctypes.c_double(1.0))
-print(f"Predict : {predicted}")
+# Set variable to predict & convert it in C to use it in our Library
+x = 1.5
+c_input = ctypes.c_double(x)
+predicted = wd.predict_linear_regression_model(ctypes.byref(model), c_input)
+print(f"\n------ PREDICTION ------ \nf({x}) = {predicted}")
 
+# Delete model in the memory
 wd.delete_linear_regression_model(model)
