@@ -31,8 +31,8 @@ model: LinearRegressionModel = wd.create_linear_regression_model()
 print(f"------ INITIALISATION ------ \nf(x) = {model.coefficient} * x + {model.constant}")
 
 # Set Datas
-X = np.array([[1.0], [2]], dtype=np.float64)
-Y = np.array([2.0, 3.0], dtype=np.float64)
+X = np.array([[3], [7]], dtype=np.float64)
+Y = np.array([6, 10], dtype=np.float64)
 
 # Convert datas to C for be able to use them in Library
 cx = X.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
@@ -43,10 +43,12 @@ wd.train_linear_regression_model(ctypes.byref(model), cx, cy, len(X))
 print(f"\n------ TRAINING ------ \nf(x) = {model.coefficient} * x + {model.constant}")
 
 # Set variable to predict & convert it in C to use it in our Library
-x = 1.5
+x = 5
 c_input = ctypes.c_double(x)
 predicted = wd.predict_linear_regression_model(ctypes.byref(model), c_input)
 print(f"\n------ PREDICTION ------ \nf({x}) = {predicted}")
 
 # Delete model in the memory
 wd.delete_linear_regression_model(model)
+
+#

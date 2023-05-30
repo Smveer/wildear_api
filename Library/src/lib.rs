@@ -1,5 +1,6 @@
+use ndarray::{Array, Array1, Array2};
+use ndarray_linalg::Inverse;
 use std::slice;
-use rand::Rng;
 
 #[no_mangle]
 extern "C" fn add(a: i32, b: i32) -> i32 {
@@ -42,6 +43,12 @@ struct MLP {
 }
 
 #[repr(C)]
+pub struct PolynomialRegressionModel {
+    coefficients: Array1<f64>,
+    degree: usize,
+}
+
+#[repr(C)]
 pub struct LinearRegressionModel  {
     coefficient: f64,
     constant: f64,
@@ -49,7 +56,6 @@ pub struct LinearRegressionModel  {
 
 #[no_mangle]
 extern "C" fn create_linear_regression_model() -> *mut LinearRegressionModel{
-    let mut rng = rand::thread_rng();
 
     let model= Box::new(LinearRegressionModel {
         coefficient: 0.0,
@@ -59,8 +65,28 @@ extern "C" fn create_linear_regression_model() -> *mut LinearRegressionModel{
     let leaked = Box::leak(model);
     leaked
 }
+
+#[no_mangle]
+extern "C" fn create_polynomial_regression_model() -> *mut PolynomialRegressionModel{
+
+    let model = Box::new(PolynomialRegressionModel {
+        coefficients: Array::zeros(3),
+        degree: 2,
+    });
+
+    let leaked = Box::leak(model);
+    leaked
+}
+
 #[no_mangle]
 extern "C" fn delete_linear_regression_model(model: *mut LinearRegressionModel) {
+    unsafe {
+        let _ = Box::from_raw(model);
+    }
+}
+
+#[no_mangle]
+extern "C" fn delete_polynomial_regression_model(model: *mut PolynomialRegressionModel) {
     unsafe {
         let _ = Box::from_raw(model);
     }
@@ -107,9 +133,58 @@ extern "C" fn train_linear_regression_model(
 }
 
 #[no_mangle]
+extern "C" fn train_polynomial_regression_model(
+    model: *mut PolynomialRegressionModel,
+    x: *const f64,
+    x_len: usize,
+    y: *const f64,
+    y_len: usize,
+){
+    // Convert pointers to slices
+    let mut model = unsafe { &mut *model };
+    let x_slice = unsafe { std::slice::from_raw_parts(x, x_len) };
+    let y_slice = unsafe { std::slice::from_raw_parts(y, y_len) };
+
+    // Convert slices to ndarray
+    let matrix_x = Array::from_shape_vec((x_len, 1), x_slice.to_vec()).unwrap();
+    let matrix_y = Array::from_shape_vec((y_len,), y_slice.to_vec()).unwrap();
+
+    let n = matrix_x.shape()[0];
+    let m = model.degree + 1;
+
+    // Creation de la matrice de conception
+    let mut matrix_design = Array::zeros((n, m));
+    for (mut row, &xi) in matrix_design.outer_iter_mut().zip(matrix_x.iter()) {
+        for j in 0..m {
+            row[j] = xi.powf(j as f64);
+        }
+    }
+
+    let matrix_t = matrix_design.t();
+    let x_tx = matrix_t.dot(&matrix_design);
+    let x_ty = matrix_t.dot(&matrix_y);
+    model.coefficients = x_tx
+        .inv()
+        .expect("Singular matrix")
+        .dot(&x_ty);
+
+}
+
+#[no_mangle]
 extern "C" fn predict_linear_regression_model(model: *mut LinearRegressionModel, x: f64) -> f64 {
     let model = unsafe { &mut *model};
     model.coefficient * x + model.constant
+}
+
+#[no_mangle]
+extern "C" fn predict_polynomial_regression_model(model: *mut PolynomialRegressionModel, x: f64) -> f64 {
+    let model = unsafe { &mut *model};
+
+    let mut val = 0.0;
+    for (j, &coeff) in model.coefficients.iter().enumerate() {
+        val += coeff * x.powf(j as f64);
+    }
+    val
 }
 
 #[no_mangle]
