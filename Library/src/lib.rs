@@ -1,6 +1,5 @@
-use ndarray::{Array, Array1, Array2};
-use ndarray_linalg::Inverse;
 use std::slice;
+use std::vec::Vec;
 
 #[no_mangle]
 extern "C" fn add(a: i32, b: i32) -> i32 {
@@ -20,7 +19,7 @@ extern "C" fn sum(arr: *const i32, nb_elems: i32) -> i32 {
 
 #[no_mangle]
 extern "C" fn count_to_n(n: i32) -> *mut i32 {
-    let mut v: Vec<i32> = (0..n).collect();
+    let v: Vec<i32> = (0..n).collect();
 
     let arr_slice = v.leak();
 
@@ -34,6 +33,52 @@ extern "C" fn delete_int_array(arr: *mut i32, arr_len: i32) {
     };
 }
 
+fn invert_matrix(matrix: &Vec<Vec<f64>>) -> Option<Vec<Vec<f64>>> {
+    let n = matrix.len();
+    let m = matrix[0].len();
+
+    let mut augmented_matrix: Vec<Vec<f64>> = matrix.clone();
+    let mut inverse_matrix: Vec<Vec<f64>> = vec![vec![0.0; m]; n];
+
+    // Création de la matrice identité de même taille
+    for i in 0..n {
+        inverse_matrix[i][i] = 1.0;
+        augmented_matrix[i].extend_from_slice(&inverse_matrix[i]);
+    }
+
+    // Algorithme d'élimination de Gauss-Jordan
+    for i in 0..n {
+        if augmented_matrix[i][i] == 0.0 {
+            return None; // La matrice est singulière, l'inverse n'existe pas
+        }
+
+        let pivot = augmented_matrix[i][i];
+
+        // Division de la ligne i par le pivot
+        for j in 0..2 * m {
+            augmented_matrix[i][j] /= pivot;
+        }
+
+        // Soustraction des multiples de la ligne i des autres lignes
+        for k in 0..n {
+            if k != i {
+                let factor = augmented_matrix[k][i];
+                for j in 0..2 * m {
+                    augmented_matrix[k][j] -= factor * augmented_matrix[i][j];
+                }
+            }
+        }
+    }
+
+    // Extraction de la matrice inverse
+    let mut inverse_matrix: Vec<Vec<f64>> = vec![vec![0.0; m]; n];
+    for i in 0..n {
+        inverse_matrix[i] = augmented_matrix[i][m..].to_vec();
+    }
+
+    Some(inverse_matrix)
+}
+
 struct MLP {
     nb_layer: usize,
     nb_neurons_per_layer: Vec<usize>,
@@ -44,7 +89,7 @@ struct MLP {
 
 #[repr(C)]
 pub struct PolynomialRegressionModel {
-    coefficients: Array1<f64>,
+    coefficients: Vec<f64>,
     degree: usize,
 }
 
@@ -70,7 +115,7 @@ extern "C" fn create_linear_regression_model() -> *mut LinearRegressionModel{
 extern "C" fn create_polynomial_regression_model() -> *mut PolynomialRegressionModel{
 
     let model = Box::new(PolynomialRegressionModel {
-        coefficients: Array::zeros(3),
+        coefficients: vec![0.0; 3],
         degree: 2,
     });
 
@@ -145,29 +190,43 @@ extern "C" fn train_polynomial_regression_model(
     let x_slice = unsafe { std::slice::from_raw_parts(x, x_len) };
     let y_slice = unsafe { std::slice::from_raw_parts(y, y_len) };
 
-    // Convert slices to ndarray
-    let matrix_x = Array::from_shape_vec((x_len, 1), x_slice.to_vec()).unwrap();
-    let matrix_y = Array::from_shape_vec((y_len,), y_slice.to_vec()).unwrap();
+    // Convert slices to vec
+    let matrix_x = x_slice.to_vec();
+    let matrix_y = y_slice.to_vec();
 
-    let n = matrix_x.shape()[0];
+    let n = matrix_x.len();
     let m = model.degree + 1;
 
     // Creation de la matrice de conception
-    let mut matrix_design = Array::zeros((n, m));
-    for (mut row, &xi) in matrix_design.outer_iter_mut().zip(matrix_x.iter()) {
+    let mut matrix_design = vec![vec![0.0; m]; n];
+    for (i, &x) in matrix_x.iter().enumerate() {
         for j in 0..m {
-            row[j] = xi.powf(j as f64);
+            matrix_design[i][j] = x.powf(j as f64);
         }
     }
 
-    let matrix_t = matrix_design.t();
-    let x_tx = matrix_t.dot(&matrix_design);
-    let x_ty = matrix_t.dot(&matrix_y);
-    model.coefficients = x_tx
-        .inv()
-        .expect("Singular matrix")
-        .dot(&x_ty);
+    // Partie 4: Entraînement du modèle
+    let mut x_tx: Vec<Vec<f64>> = vec![vec![0.0; m]; m];
+    let mut x_ty: Vec<f64> = vec![0.0; m];
+    for (i, row) in matrix_design.iter().enumerate() {
+        for j in 0..m {
+            for k in 0..m {
+                x_tx[j][k] += row[j] * matrix_design[i][k];
+            }
+            x_ty[j] += row[j] * matrix_y[i];
+        }
+    }
 
+    // Inversion de la matrice x_tx
+    let inverse_x_tx = invert_matrix(&x_tx).expect("Singular matrix");
+
+    // Adjust coefficients
+    model.coefficients = vec![0.0; m];
+    for j in 0..m {
+        for k in 0..m {
+            model.coefficients[j] += inverse_x_tx[j][k] * x_ty[k];
+        }
+    }
 }
 
 #[no_mangle]
@@ -224,7 +283,7 @@ extern "C" fn predict_mlp_model(model: *mut MLP, sample_inputs: *const f32, colu
 #[no_mangle]
 extern "C" fn delete_mlp_model(model: *mut MLP) {
     unsafe {
-        Box::from_raw(model);
+        let _ = Box::from_raw(model);
     }
 }
 
