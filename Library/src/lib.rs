@@ -279,7 +279,10 @@ extern "C" fn create_mlp_model(arr: *mut i32, arr_len: i32) -> *mut MLP {
 
     // Parcourir chaque couche du modèle
     for layer in 0..neurons_per_layer.len() {
+        // Obtenir le nombre de neurones dans la couche actuelle
         let num_neurons_curr_layer = neurons_per_layer[layer];
+        // Obtenir le nombre de neurones dans la couche précédente,
+        // si la couche actuelle n'est pas la première (couche d'entrée)
         let num_neurons_prev_layer = if layer > 0 { neurons_per_layer[layer - 1] } else { 0 };
 
         // Initialisation des poids de la couche
