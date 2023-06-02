@@ -79,13 +79,6 @@ fn invert_matrix(matrix: &Vec<Vec<f64>>) -> Option<Vec<Vec<f64>>> {
     Some(inverse_matrix)
 }
 
-struct MLP {
-    nb_layer: usize, // Nombre de couches (ou layers) du modèle MLP
-    nb_neurons_per_layer: Vec<usize>, // Nombre de neurones par couche du modèle MLP
-    W: Vec<Vec<Vec<f32>>>,  // Matrices de poids du modèle MLP
-    X: Vec<Vec<f32>>,
-    deltas: Vec<Vec<f32>>, // Vecteurs de biais du modèle MLP
-}
 
 #[repr(C)]
 pub struct PolynomialRegressionModel {
@@ -246,17 +239,79 @@ extern "C" fn predict_polynomial_regression_model(model: *mut PolynomialRegressi
     val
 }
 
+/*
+    Multilayer perceptron
+*/
+
+//Structure MLP
+struct MLP {
+    nb_layer: usize, // Nombre de couches (ou layers) du modèle MLP
+    nb_neurons_per_layer: Vec<usize>, // Nombre de neurones par couche du modèle MLP
+    W: Vec<Vec<Vec<f32>>>,  // Matrices de poids du modèle MLP
+    X: Vec<Vec<f32>>,
+    deltas: Vec<Vec<f32>>, // Vecteurs de biais du modèle MLP
+}
+
+
 #[no_mangle]
 extern "C" fn create_mlp_model(arr: *mut i32, arr_len: i32) -> *mut MLP {
-    let model = Box::new(MLP {
-        nb_layer: 0,   //TODO
-        nb_neurons_per_layer: vec![], //TODO
-        W: vec![], //TODO
-        X: vec![], //TODO
-        deltas: vec![], //TODO
-    });
-    //TODO : Initialization
 
+    //Convertir le pointeur brut en slice pour accéder aux données
+     let neurons_per_layer = unsafe {
+        slice::from_raw_parts(arr, arr_len as usize)
+    };
+
+     // Créer une instance de la structure MLP
+    let model = Box::new(MLP {
+        // Le nombre de couches est déterminé par la longueur de la liste `neurons_per_layer`
+        nb_layer: neurons_per_layer.len(),
+        // Copier les valeurs de `neurons_per_layer` dans un nouveau vecteur
+        nb_neurons_per_layer: neurons_per_layer.to_vec(),
+        // Initialiser les matrices de poids et les vecteurs d'entrées et de deltas comme vides
+        W: Vec::new(),
+        X: Vec::new(),
+        deltas: Vec::new(),
+    });
+
+
+    // Initialisation du modèle MLP
+    let mut rng = rand::thread_rng(); // Créer un générateur de nombres aléatoires
+
+    // Parcourir chaque couche du modèle
+    for layer in 0..neurons_per_layer.len() {
+        let num_neurons_curr_layer = neurons_per_layer[layer];
+        let num_neurons_prev_layer = if layer > 0 { neurons_per_layer[layer - 1] } else { 0 };
+
+        // Initialisation des poids de la couche
+        let mut layer_weights = Vec::new();
+
+        // Pour chaque neurone de la couche actuelle
+        for _ in 0..num_neurons_curr_layer {
+            let mut neuron_weights = Vec::new();
+
+            // Initialisation des poids des connexions avec la couche précédente
+            for _ in 0..=num_neurons_prev_layer {
+                let weight = rng.gen::<f32>(); // Générer un poids aléatoire entre 0 et 1
+                neuron_weights.push(weight);
+            }
+
+            layer_weights.push(neuron_weights);
+        }
+
+        // Ajouter les poids de la couche au modèle MLP
+        model.W.push(layer_weights);
+
+        // Initialisation des deltas de la couche
+        let mut layer_deltas = Vec::new();
+        // Pour chaque neurone de la couche
+        for _ in 0..num_neurons_curr_layer {
+            layer_deltas.push(0.0); // Initialiser les deltas à zéro
+        }
+        // Ajouter les deltas de la couche au modèle MLP
+        model.deltas.push(layer_deltas);
+    }
+
+    // Convertir la boîte `model` en pointeur brut
     let leaked = Box::leak(model);
     leaked
 }
