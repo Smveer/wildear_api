@@ -34,11 +34,11 @@ extern "C" fn delete_int_array(arr: *mut i32, arr_len: i32) {
 }
 
 struct MLP {
-    nb_layer: usize,
-    nb_neurons_per_layer: Vec<usize>,
-    W: Vec<Vec<Vec<f32>>>,
+    nb_layer: usize, // Nombre de couches (ou layers) du modèle MLP
+    nb_neurons_per_layer: Vec<usize>, // Nombre de neurones par couche du modèle MLP
+    W: Vec<Vec<Vec<f32>>>,  // Matrices de poids du modèle MLP
     X: Vec<Vec<f32>>,
-    deltas: Vec<Vec<f32>>,
+    deltas: Vec<Vec<f32>>, // Vecteurs de biais du modèle MLP
 }
 
 #[repr(C)]
