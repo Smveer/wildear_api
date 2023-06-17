@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Import la library
-wd = ctypes.CDLL(r"../../Library/target/debug/libLibrary.dylib")
+wd = ctypes.CDLL(r"../../Library/target/debug/librust_ml.dylib")
 
 
 # Import la structure
@@ -33,9 +33,6 @@ wd.train_linear_regression_model.argtype = [
 wd.predict_linear_regression_model.argtype = [LinearRegressionModel, ctypes.c_double]
 wd.predict_linear_regression_model.restype = ctypes.c_double
 wd.delete_linear_regression_model.argtype = [LinearRegressionModel]
-# Polynomial Regression Model
-wd.create_polynomial_regression_model.restype = PolynomialRegressionModel
-wd.delete_polynomial_regression_model.argtype = [PolynomialRegressionModel]
 
 # Model creation
 model: LinearRegressionModel = wd.create_linear_regression_model()

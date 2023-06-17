@@ -163,3 +163,5 @@ cython_debug/
 .idea/other.xml
 .idea/wildear_api.iml
 .idea/wildear_api.iml
+.idea/wildear_api.iml
+.idea/misc.xml
