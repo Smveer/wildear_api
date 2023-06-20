@@ -159,9 +159,4 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 .DS_Store
-.idea/misc.xml
-.idea/other.xml
-.idea/wildear_api.iml
-.idea/wildear_api.iml
-.idea/wildear_api.iml
-.idea/misc.xml
+.idea/*
