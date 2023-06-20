@@ -6,6 +6,7 @@ extern "C" fn delete_polynomial_regression_model(
 ){
     unsafe {
         let ml = Box::from_raw(model);
-        println!("Before delete: {}", ml.degree);
+        println!("NLRM: Before delete: {}", ml.degree);
     }
+    println!("NLRM: Deleted");
 }
