@@ -27,7 +27,7 @@ extern "C" fn create_mlp_model(arr: *mut i32, arr_len: i32) -> *mut MLP {
         nb_layer: layers,
         nb_neurons_per_layer: n_per_layer,
         weight: weights,
-        x: vec![vec![]; layers],
+        activations: vec![vec![]; layers],
         deltas: vec![vec![]; layers],
     });
 
