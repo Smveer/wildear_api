@@ -32,20 +32,15 @@ async def read_item(base64_audio: Request):
     audio_name = "sample"
     extension = ".webm"
 
-    # Init the audio from json received
-    audio = Audio(await base64_audio.json())
+    audio = Audio(await base64_audio.json())  # Init the audio from json received
 
-    # Set path to audio, add "/" between directory path and filename
     audio.set_path(directory + "/" + audio_name + extension)
 
-    # Create the .webm file
-    audioController.create_webm(audio)
+    audioController.create_webm_from_audio(audio)  # Create the .webm file
 
-    # Convert .webm to .wav
-    audio = audioController.convert_webm_to_wav(audio)
+    audio = audioController.convert_webm_to_wav(audio)  # Convert .webm to .wav
 
-    # Create segments and delete .wav
-    audioController.create_image_segments_from_audio(audio)
+    audioController.create_image_segments_from_audio(audio)  # Create images and delete .wav
     
     return "Segments created !"
 
