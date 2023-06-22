@@ -37,14 +37,17 @@ class Audio:
             self.set_data(base64.b64encode(self.data))
             self.set_encoding("b64")
 
-    def get_filename_from_path(self, extension=True):
+    @staticmethod
+    def get_filename_from_path(path, extension=True):
         if extension:
-            return self.path.split("/")[-1]
+            return path.split("/")[-1]
         else:
-            return self.path.split("/")[-1].split(".")[0]
+            return path.split("/")[-1].split(".")[0]
 
-    def get_directory_path_from_path(self):
-        return "/".join(self.path.split("/")[:-1])
+    @staticmethod
+    def get_directory_path_from_path(path):
+        return "/".join(path.split("/")[:-1])
 
-    def get_file_extension_from_path(self):
-        return self.get_filename_from_path().split(".")[-1]
+    @staticmethod
+    def get_file_extension_from_path(path):
+        return Audio.get_filename_from_path(path).split(".")[-1]

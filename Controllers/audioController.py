@@ -15,8 +15,8 @@ import scipy.io.wavfile as wavfile
 """
 
 
-def create_webm(audio: Audio):
-    directory_path = audio.get_directory_path_from_path()
+def create_webm_from_audio(audio: Audio):
+    directory_path = Audio.get_directory_path_from_path(audio.path)
 
     # Check if the directory exists, else create one
     if os.path.isdir(directory_path) is False:
@@ -30,54 +30,60 @@ def create_webm(audio: Audio):
 
 
 """
-    1 - Convert .webm file to .wav file with ffmpeg
-    2 - Convert stereo to mono
-    3 - Fix audio duration to 5 seconde
-"""
-
-
-def convert_webm_to_wav(audio: Audio):
-    new_path = audio.get_directory_path_from_path() + "/" + audio.get_filename_from_path(False) + ".wav"
-
-    # Convert with ffmpeg utility thanks to a subprocess
-    subprocess.run(
-        ["ffmpeg", "-y", "-i", audio.path, "-vn", "-acodec", "pcm_s16le", "-ar", "44100", "-ac", "2", new_path])
-
-    # Delete old file from audio path
-    os.remove(audio.path)
-
-    # Set new path to the audio
-    audio.set_path(new_path)
-
-    # Convert the audio from stereo(2) to mono(1)
-    sound = convert_stereo_to_mono(audio)
-
-    # Set optimal duration of 5s (5000 ms)
-    optimal_duration = 5000
-
-    # Get current sounds duration
-    current_duration = len(sound)
-
-    # If current duration is higher than the optimal, cut to optimize current sound
-    if current_duration > optimal_duration:
-        sound = sound[:optimal_duration]
-    # If current duration is lower than the optimal, complete with silent noise
-    elif current_duration < optimal_duration:
-        silence = AudioSegment.silent(duration=optimal_duration - current_duration)
-        sound = sound + silence
-
-    # Export audio with his extension
-    sound.export(audio.path, format=audio.get_file_extension_from_path())
-    return audio
-
-
-"""
     Convert stereo chanel (2) to Mono channel (1) - usefull for spectogram
 """
 
 
-def convert_stereo_to_mono(audio: Audio):
-    return AudioSegment.from_wav(audio.path).set_channels(1)
+def get_mono_channel_sound_segments_from_wav(path):
+    return AudioSegment.from_wav(path).set_channels(1)
+
+
+"""
+    1 - Convert .webm file to .wav file with ffmpeg
+    2 - Convert stereo to mono
+    3 - Fix audio duration to 5 secondes
+"""
+
+
+def convert_webm_to_wav(audio: Audio, optimum: int = 5000, replace: bool = False):
+    new_path = Audio.get_directory_path_from_path(audio.path) + "/" + Audio.get_filename_from_path(audio.path, False)
+    new_path += ".wav"
+
+    subprocess.run(  # Convert with ffmpeg utility thanks to a subprocess
+        [
+            "ffmpeg",
+            "-y",
+            "-i",
+            audio.path,
+            "-vn",
+            "-acodec",
+            "pcm_s16le",
+            "-ar",
+            "44100",
+            "-ac",
+            "2",
+            new_path
+        ]
+    )
+
+    if replace:
+        os.remove(audio.path)  # Delete old file if replace == True
+
+    audio.set_path(new_path)  # Set new path to the audio
+
+    sound = get_mono_channel_sound_segments_from_wav(audio.path)  # Convert the audio from stereo(2) to mono(1)
+
+    if optimum > 0:
+        optimal_duration = optimum
+        current_duration = len(sound)  # Get current sounds duration
+        if current_duration > optimal_duration:  # If current duration is higher than the optimal,
+            sound = sound[:optimal_duration]  # cut to optimize current sound
+        elif current_duration < optimal_duration:  # If current duration is lower than the optimal,
+            silence = AudioSegment.silent(duration=optimal_duration - current_duration)
+            sound = sound + silence  # complete with silent noise
+
+    sound.export(audio.path, format=Audio.get_file_extension_from_path(audio.path))  # Export audio with his extension
+    return audio
 
 
 """
@@ -102,16 +108,17 @@ def create_image_segments_from_audio(audio: Audio):
     i = 1
     for piece in pieces:
         # Create path for file thanks to i
-        path = audio.get_directory_path_from_path() + "/" + audio.get_filename_from_path(False) + "_" + str(i) + "."
+        path = Audio.get_directory_path_from_path(audio.path) + "/" + Audio.get_filename_from_path(audio.path, False)
+        path += "_" + str(i) + "."
 
         # Create file for audio segment
-        piece.export(path + audio.get_file_extension_from_path(), format=audio.get_file_extension_from_path())
+        piece.export(path + Audio.get_file_extension_from_path(audio.path), format=Audio.get_file_extension_from_path(audio.path))
 
         # After creating audio file, read file to get information
-        audio_rate, audio_data = wavfile.read(path + audio.get_file_extension_from_path())
+        audio_rate, audio_data = wavfile.read(path + Audio.get_file_extension_from_path(audio.path))
 
         # Delete audio file, we don"t need it again
-        os.remove(path + audio.get_file_extension_from_path())
+        os.remove(path + Audio.get_file_extension_from_path(audio.path))
 
         # Create spectrogram thanks to audio information received just before
         plt.specgram(audio_data, Fs=audio_rate)

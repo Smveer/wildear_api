@@ -1,7 +1,4 @@
 from Models.Audio import Audio
 
-audio = Audio()
-audio.set_path("dir1/dir1-1/dir1-1-1/audio.webm")
-
-print(audio.get_filename_from_path())
-print(audio.get_filename_from_path(False))
+print(Audio.get_filename_from_path("dir1/dir1-1/dir1-1-1/audio.webm"))
+print(Audio.get_filename_from_path("dir1/dir1-1/dir1-1-1/audio.webm", extension=False))
