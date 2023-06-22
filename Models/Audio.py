@@ -27,6 +27,24 @@ class Audio:
                 self.set_data(json_dic["data"])
             self.change_data_format_from_b64_into_b2()
 
+    def __eq__(
+            self,
+            other: 'Audio'
+    ) -> bool:
+        """
+        Check if an instance of Audio is equal to another instance of Audio : \n
+        aud, other = Audio() -> aud == other => True
+
+            Parameters:
+                    other (Audio): the other instant of Audio that you want to verify
+
+            Returns:
+                    bool
+        """
+        if self.path == other.path and self.data == other.data and self.encoding == other.encoding:
+            return True
+        return False
+
     def set_data(
             self,
             data: bytes
