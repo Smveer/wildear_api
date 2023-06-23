@@ -125,7 +125,8 @@ class Audio:
 
     @staticmethod
     def get_directory_path_from_path(
-            path: str
+            path: str,
+            last_slash: bool = True
     ) -> str:
         """
         Static Method
@@ -133,14 +134,18 @@ class Audio:
 
             Parameters:
                         path (str): path of the directory to get
+                        last_slash (bool): True as default , If true, retrieve last slash, else not
             Returns:
                     path (str)
         """
+        if last_slash:
+            return "/".join(path.split("/")[:-1]) + "/"
         return "/".join(path.split("/")[:-1])
 
     @staticmethod
     def get_file_extension_from_path(
-            path: str
+            path: str,
+            point: bool = True
     ) -> str:
         """
         Static Method
@@ -148,7 +153,26 @@ class Audio:
 
             Parameters:
                         path (str): path of the filename to get its extension
+                        point (bool): True as default, if True, retrieve point in front of the extension
             Returns:
                     extension (str)
         """
+        if point:
+            return "." + Audio.get_filename_from_path(path).split(".")[-1]
         return Audio.get_filename_from_path(path).split(".")[-1]
+
+    @staticmethod
+    def get_path_without_extension_from_path(
+            path: str
+    ) -> str:
+        """
+        Static Method
+        Read path string and return the path without the extension at the end,\n
+        uses Audio.get_directory_path_from_path and Audio.get_filename_from_path :
+
+            Parameters:
+                        path (str): path of the filename to get its extension
+            Returns:
+                    path (str)
+        """
+        return Audio.get_directory_path_from_path(path) + Audio.get_filename_from_path(path, False)

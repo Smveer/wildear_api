@@ -2,20 +2,23 @@ import subprocess
 import os
 from pydub import AudioSegment
 from Models.Audio import Audio
+from pathlib import Path
 
-# for data transformation
-import numpy as np
 # for visualizing the data
 import matplotlib.pyplot as plt
 # for opening the media file
 import scipy.io.wavfile as wavfile
 
-"""
-    Create .webm file with binary sound
-"""
 
+def create_file_from_audio(
+        audio: Audio
+):
+    """
+    Create audio media file from Audio instance:
 
-def create_webm_from_audio(audio: Audio):
+        Parameters:
+                    audio (Audio): audio containing data that will fill the file created
+    """
     directory_path = Audio.get_directory_path_from_path(audio.path)
 
     # Check if the directory exists, else create one
@@ -29,27 +32,40 @@ def create_webm_from_audio(audio: Audio):
     f.close()
 
 
-"""
-    Convert stereo chanel (2) to Mono channel (1) - usefull for spectogram
-"""
+def get_mono_channel_sound_segments_from_wav(
+        path
+) -> list:
+    """
+    Return list of wav audio segments in mono channel
 
-
-def get_mono_channel_sound_segments_from_wav(path):
+        Parameters:
+                    path (str): path of the wav to retrieve segments
+        Returns:
+                segments (list): list of audio segments (each element is one millisecond of audio)
+    """
     return AudioSegment.from_wav(path).set_channels(1)
 
 
-"""
-    1 - Convert .webm file to .wav file with ffmpeg
-    2 - Convert stereo to mono
-    3 - Fix audio duration to 5 secondes
-"""
+def convert_webm_to_wav(
+        audio: Audio,
+        optimum: int = -1,
+        replace: bool = False
+) -> Audio:
+    """
+    Use Audio instance to convert webm file into wav file,\n
+    use optimum to cut the audio for a certain size,\n
+    and replace webm file if desired.
 
+        Parameters:
+                    audio (Audio): Audio instance with webm file path
+                    optimum (int): in milliseconds, -1 per default, it means it doesn't cut the sound
+                    replace (bool): False as default, will delete webm file if True
+        Returns:
+                audio (Audio): new Audio instance with new path of wav file
+    """
+    new_path = Audio.get_directory_path_from_path(audio.path) + Audio.get_filename_from_path(audio.path, False) + ".wav"
 
-def convert_webm_to_wav(audio: Audio, optimum: int = 5000, replace: bool = False):
-    new_path = Audio.get_directory_path_from_path(audio.path) + "/" + Audio.get_filename_from_path(audio.path, False)
-    new_path += ".wav"
-
-    subprocess.run(  # Convert with ffmpeg utility thanks to a subprocess
+    subprocess.run(  # Convert with ffmpeg utility (installed manually) thanks to a subprocess
         [
             "ffmpeg",
             "-y",
@@ -82,52 +98,99 @@ def convert_webm_to_wav(audio: Audio, optimum: int = 5000, replace: bool = False
             silence = AudioSegment.silent(duration=optimal_duration - current_duration)
             sound = sound + silence  # complete with silent noise
 
-    sound.export(audio.path, format=Audio.get_file_extension_from_path(audio.path))  # Export audio with his extension
+    sound.export(
+        audio.path,
+        format=Audio.get_file_extension_from_path(audio.path, False)
+    )  # Export audio with his extension
+
     return audio
 
 
-"""
-    1 - Get an audio and cut into segments of 0,5s 
-    2 - Delete .wav file
-"""
+def create_png_from_wav(
+        path: str,
+        size_x: float = 0.5,
+        size_y: float = 0.5,
+        axis: bool = False,
+        replace: bool = False
+):
+    """
+    Create png image from audio file (type wav), scale image with xy, hide/unhide axis on it, delete audio file after.
+
+        Parameters:
+                    path (str): path of the audio to transform
+                    size_x (float): 0.5 as default, x side of image, 0.01 => 1 pixel
+                    size_y (float): 0.5 as default, y side of image, 0.01 => 1 pixel
+                    axis (bool): False as default, hide (False) unhide(True) axis
+                    replace (bool): False as default, if True delete file after image creation
+    """
+    audio_rate, audio_data = wavfile.read(path)  # Read file to get information
+
+    axis = "on" if axis else "off"
+
+    if size_x < 0 or size_y < 0:
+        size_x, size_y = 0.5, 0.5
+
+    plt.figure(figsize=(size_x, size_y))  # -> 1px = 0.01
+    plt.axis(axis)  # Turn on or off axis
+    plt.specgram(audio_data, Fs=audio_rate)  # Create spectrogram thanks to audio information received just before
+    plt.savefig(Audio.get_path_without_extension_from_path(path) + ".png")  # Save file with png extension
+    plt.close()  # Close plot file
+
+    if replace:
+        # Delete audio file if replace is True
+        os.remove(path)
 
 
-def create_image_segments_from_audio(audio: Audio):
-    # Put matplotlib figure image at 50px*50px
-    plt.figure(figsize=(0.5, 0.5))  # -> 1px = 0.01
-    # We don"t want to see axis, so we turn off axis
-    plt.axis("off")
+def create_pieces_from_wav(
+        path: str,
+        size_in_milliseconds: int = 500,
+        replace: bool = False
+):
+    """
+    Create png image from audio file (type wav), scale image with xy, hide/unhide axis on it, delete audio file after.
 
-    # Get sound from file
-    sound = AudioSegment.from_wav(audio.path)
+        Parameters:
+                    path (str): path of the audio to cut into pieces
+                    size_in_milliseconds (int): 500 as default, size of each piece, 500 => 0.5 second
+                    replace (bool): False as default, if True delete original file after all cuts
+    """
+    size_in_milliseconds = 500 if size_in_milliseconds < 0 else size_in_milliseconds
 
-    # Divide file into pieces (1 element = 1 ms => here 500 ms = 500 elements)
-    pieces = sound[::500]
+    sound = AudioSegment.from_wav(path).set_channels(1)  # Get sound segments from file, 1 segment = 1 ms
+    pieces = sound[::size_in_milliseconds]  # Divide sound into pieces of size_in_milliseconds size
 
-    # Save each piece into a file
-    i = 1
-    for piece in pieces:
-        # Create path for file thanks to i
-        path = Audio.get_directory_path_from_path(audio.path) + "/" + Audio.get_filename_from_path(audio.path, False)
-        path += "_" + str(i) + "."
+    for i, piece in enumerate(pieces):
+        piece.export(  # Export piece as sound, same time than the original
+            Audio.get_path_without_extension_from_path(path) + "_" + str(i) + Audio.get_file_extension_from_path(path),
+            format=Audio.get_file_extension_from_path(  # Not necessary but exports are faster when format is specified
+                path,
+                False
+            )
+        )
 
-        # Create file for audio segment
-        piece.export(path + Audio.get_file_extension_from_path(audio.path), format=Audio.get_file_extension_from_path(audio.path))
+    if replace:
+        # Delete audio file if replace is True
+        os.remove(path)
 
-        # After creating audio file, read file to get information
-        audio_rate, audio_data = wavfile.read(path + Audio.get_file_extension_from_path(audio.path))
 
-        # Delete audio file, we don"t need it again
-        os.remove(path + Audio.get_file_extension_from_path(audio.path))
+def treat_wav_for_wildear(
+        path: str,
+        replace: bool = True
+):
+    """
+    Create png images after cutting the wav file in the Wild Ear way
 
-        # Create spectrogram thanks to audio information received just before
-        plt.specgram(audio_data, Fs=audio_rate)
+        Parameters:
+                    path (str): path of the audio to transform into images
+                    replace (bool): True as default, if True delete original files after all transformations
+    """
+    create_pieces_from_wav(path, replace)
 
-        # Save file with png extension
-        plt.savefig(path + "png")
+    files = Path(
+        Audio.get_directory_path_from_path(path)
+    ).glob(
+        Audio.get_filename_from_path(path, False) + "_*" + Audio.get_file_extension_from_path(path)
+    )
 
-        # increment to save next piece name file
-        i += 1
-
-    # Delete the original .wav file (non-segmented one)
-    os.remove(audio.path)
+    for f in files:
+        create_png_from_wav(str(f), replace)
