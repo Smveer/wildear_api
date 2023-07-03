@@ -36,6 +36,5 @@ extern "C" fn predict_mlp_model(model: *mut MLP, sample_inputs: *const f32, colu
     } else {
         last_layer_activations[0]
     };
-    Ò
     Box::leak(Box::new(prediction))
 }
