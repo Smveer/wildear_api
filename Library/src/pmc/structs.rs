@@ -6,3 +6,12 @@ pub struct MLP {
     pub activations: Vec<Vec<f32>>,
     pub deltas: Vec<Vec<f32>>,
 }
+
+#[repr(C)]
+pub struct PMC {
+    pub neurons_per_layer: Vec<usize>,
+    pub layer: usize,
+    pub weights: Vec<f32>,
+    pub neuron_res: Vec<Vec<f32>>,
+    pub deltas: Vec<Vec<f32>>
+}
