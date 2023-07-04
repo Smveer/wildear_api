@@ -1,4 +1,5 @@
 use super::structs::*;
+use super::propagate::propagate;
 
 #[no_mangle]
 extern "C" fn predict_mlp_model(model: *mut MLP, sample_inputs: *const f32, columns: i32,
