@@ -9,9 +9,9 @@ pub struct MLP {
 
 #[repr(C)]
 pub struct PMC {
+    pub layers: usize,
     pub neurons_per_layer: Vec<usize>,
-    pub layer: usize,
-    pub weights: Vec<f32>,
+    pub weights: Vec<Vec<Vec<f32>>>,
     pub neuron_res: Vec<Vec<f32>>,
     pub deltas: Vec<Vec<f32>>
 }

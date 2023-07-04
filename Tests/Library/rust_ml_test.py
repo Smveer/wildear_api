@@ -19,7 +19,7 @@ c_param = param.ctypes.data_as(ctypes.POINTER(ctypes.c_int))
 
 mlp_ptr = rml.create_pmc(c_param, ctypes.c_int(3))
 
-print("Test en cour")
+print("Pointer du pmc :")
 if mlp_ptr is not None:
     print(mlp_ptr)
 
