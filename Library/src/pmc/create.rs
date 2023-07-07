@@ -20,10 +20,8 @@ extern "C" fn create_pmc_model(arr: *mut i32, len: i32) -> *mut PMC {
 
     // Init weights
     let mut rng = rand::thread_rng();
-    for l in 0..=model.layers{
+    for l in 1..=model.layers {
         let mut layer_weights = Vec::new();
-
-        if l == 0 { continue }
 
         for _ in 0..=model.neurons_per_layer[l - 1]{
             let mut neuron_weights = Vec::new();
@@ -37,21 +35,24 @@ extern "C" fn create_pmc_model(arr: *mut i32, len: i32) -> *mut PMC {
         model.weights.push(layer_weights);
     }
 
-    // Create shape of neuron_res & deltas
-    model.neuron_data = vec![vec![0.0; model.neurons_per_layer.iter().max().unwrap_or(&0) + 1]; model.layers];
-    model.deltas =  vec![vec![]; model.layers];
-
-    // Init neuron_res : 1.0 / 0.0
-    for l in 0..model.layers {
-        for j in 0..=model.neurons_per_layer[l] {
-            model.neuron_data[l][j] = if j == 0 { 1.0 } else { 0.0 };
+    // Init neuron_data : 1.0 / 0.0
+    for l in 0..=model.layers {
+        let mut layer = Vec::new();
+        for i in 0..=model.neurons_per_layer[l] {
+            let value = if i == 0 { 1.0 } else { 0.0 };
+            layer.push(value);
         }
+        model.neuron_data.push(layer);
     }
 
     // Init deltas : 0.0
-    for l in 0..model.layers {
-        let layer_deltas = vec![0.0; model.neurons_per_layer[l] + 1];
-        model.deltas[l] = layer_deltas;
+    for l in 0..=model.layers {
+        //let layer_deltas = vec![0.0; model.neurons_per_layer[l] + 1];
+        let mut layer_deltas = Vec::new();
+        for _ in 0..=model.neurons_per_layer[l]{
+            layer_deltas.push(0.0);
+        }
+        model.deltas.push(layer_deltas);
     }
 
     print_created_model(&model);
@@ -79,7 +80,7 @@ fn print_created_model(model : &PMC) {
     }
 
     // Neurons res
-    println!("PMC: Neuron res :");
+    println!("PMC: Neuron data :");
     for i in 0..model.neuron_data.len(){
         for j in 0..model.neuron_data[i].len(){
             println!("-- neuronRes[{}][{}]: {}", i, j, model.neuron_data[i][j]);

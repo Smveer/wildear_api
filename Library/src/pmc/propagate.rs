@@ -1,6 +1,6 @@
 use super::structs::*;
 
-pub fn propagate(model:  &mut PMC, inputs: *const f32, inputs_len: i32, is_classification: bool){
+pub fn propagate(model: &mut PMC, inputs: *const f32, inputs_len: i32, is_classification: bool){
     // Convert arr to slice
     let inputs_slice = unsafe { std::slice::from_raw_parts(inputs, inputs_len as usize) };
 
@@ -10,17 +10,17 @@ pub fn propagate(model:  &mut PMC, inputs: *const f32, inputs_len: i32, is_class
     }
 
     // recursive update
-    for l in 1..model.layers + 1 {
-        for i in 1..model.neurons_per_layer[l] + 1{
+    for l in 1..=model.layers{
+        for j in 1..=model.neurons_per_layer[l]{
             let mut total = 0.0;
-            for j in 0..(model.neurons_per_layer[l - 1]) + 1{
-                total += model.weights[l][j][i] * model.neuron_data[l - 1][j]
+            for i in 0..model.neurons_per_layer[l - 1]{
+                total += model.weights[l][i][j] * model.neuron_data[l - 1][i];
             }
 
             if l < model.layers || is_classification {
                 total = total.tanh();
             }
-            model.neuron_data[l][i] = total;
+            model.neuron_data[l][j] = total;
         }
     }
 }
