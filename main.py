@@ -2,11 +2,11 @@
 @Authors:   RENE Kevin Walson; EL HABACHI Oussama; SINGH Manveer
 @Purpose:   API, main file, in run, waiting for requests
 """
-
+from Utils.utilities import *
+from Models.Audio import Audio
 from fastapi import FastAPI, File, UploadFile, Request
 from fastapi.middleware.cors import CORSMiddleware  # LOCAL USE ONLY
-from Controllers import audioController
-from Models.Audio import Audio
+
 
 app = FastAPI()
 
@@ -36,11 +36,11 @@ async def read_item(base64_audio: Request):
 
     audio.set_path(directory + "/" + audio_name + extension)
 
-    audioController.create_file_from_audio(audio)  # Create the .webm file
+    create_file_from_audio(audio)  # Create the .webm file
 
-    audio = audioController.convert_webm_to_wav(audio)  # Convert .webm to .wav
+    audio = create_wav_audio_from_webm_audio(audio)  # Convert .webm to .wav
 
-    audioController.treat_wav_for_wildear(audio.path)
+    treat_wav_for_wildear(audio.path)
     
     return "Segments specs created !"
 

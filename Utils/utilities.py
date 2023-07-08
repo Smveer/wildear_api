@@ -1,12 +1,9 @@
-import subprocess
 import os
+import subprocess
+from pathlib import Path
 from pydub import AudioSegment
 from Models.Audio import Audio
-from pathlib import Path
-
-# for visualizing the data
 import matplotlib.pyplot as plt
-# for opening the media file
 import scipy.io.wavfile as wavfile
 
 
@@ -32,21 +29,7 @@ def create_file_from_audio(
     f.close()
 
 
-def get_mono_channel_sound_segments_from_wav(
-        path
-) -> list:
-    """
-    Return list of wav audio segments in mono channel
-
-        Parameters:
-                    path (str): path of the wav to retrieve segments
-        Returns:
-                segments (list): list of audio segments (each element is one millisecond of audio)
-    """
-    return AudioSegment.from_wav(path).set_channels(1)
-
-
-def convert_webm_to_wav(
+def create_wav_audio_from_webm_audio(
         audio: Audio,
         optimum: int = -1,
         replace: bool = False
@@ -104,6 +87,20 @@ def convert_webm_to_wav(
     )  # Export audio with his extension
 
     return audio
+
+
+def get_mono_channel_sound_segments_from_wav(
+        path
+) -> list:
+    """
+    Return list of wav audio segments in mono channel
+
+        Parameters:
+                    path (str): path of the wav to retrieve segments
+        Returns:
+                segments (list): list of audio segments (each element is one millisecond of audio)
+    """
+    return AudioSegment.from_wav(path).set_channels(1)
 
 
 def create_png_from_wav(

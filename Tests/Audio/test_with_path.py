@@ -1,5 +1,5 @@
-from Models.Audio import Audio
 import pytest
+from Models.Audio import Audio
 
 
 @pytest.fixture
