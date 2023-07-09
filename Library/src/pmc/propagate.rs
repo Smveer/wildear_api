@@ -13,7 +13,7 @@ pub fn propagate(model: &mut PMC, inputs: *const f32, inputs_len: i32, is_classi
     for l in 1..=model.layers{
         for j in 1..=model.neurons_per_layer[l]{
             let mut total = 0.0;
-            for i in 0..model.neurons_per_layer[l - 1]{
+            for i in 0..=model.neurons_per_layer[l - 1]{
                 total += model.weights[l][i][j] * model.neuron_data[l - 1][i];
             }
 

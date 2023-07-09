@@ -4,11 +4,11 @@ use rand::Rng;
 #[no_mangle]
 extern "C" fn create_pmc_model(arr: *mut i32, len: i32) -> *mut PMC {
     let mut model = Box::new(PMC {
-        layers :  0, // L
-        neurons_per_layer : vec![], // d
-        weights: vec![], // W
-        neuron_data: vec![], // X
-        deltas: vec![],
+        layers :  0,
+        neurons_per_layer : Vec::new(),
+        weights: Vec::new(),
+        neuron_data: Vec::new(),
+        deltas: Vec::new(),
     });
 
     // Convert arr to slice

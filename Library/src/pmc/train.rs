@@ -48,12 +48,12 @@ extern "C" fn train_pmc_model(model: &mut PMC,
         // Update Weights
         for l in 1..=model.layers {
             println!("TEST : l: {}", l);
-            for i in 0..model.neurons_per_layer[l - 1] {
+            for i in 0..=model.neurons_per_layer[l - 1] {
                 println!("TEST : i: {}", i);
                 for j in  1..=model.neurons_per_layer[l] {
                     println!("TEST : j: {}", j);
-                    println!("TEST : weights[{}][{}][{}] : {}", l, i, j, model.weights[l][i][j]);
                     model.weights[l][i][j] -= learning_rate * model.neuron_data[l -1][i] * model.deltas[l][j];
+                    println!("TEST : weights[{}][{}][{}] : {}", l, i, j, model.weights[l][i][j]);
                 }
             }
         }
