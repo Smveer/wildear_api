@@ -3,5 +3,5 @@ pub mod delete;
 pub mod train;
 pub mod predict;
 mod propagate;
-mod tools;
+pub mod tools;
 mod structs;
