@@ -21,6 +21,7 @@ rml.train_pmc_model.argtypes = [ctypes.c_void_p,
 rml.export_pmc.argtypes = [ctypes.c_void_p]
 rml.export_pmc.restype = ctypes.c_char_p
 rml.free_string.argtypes = [ctypes.c_char_p]
+rml.load_pmc_json.argtypes = [ctypes.c_char_p, ctypes.c_void_p]
 
 # Test
 param = np.array([2, 1])
@@ -35,8 +36,13 @@ print("test string :")
 print(pmc_data_str)
 pmc_data_json = json.loads(pmc_data_str)
 
-with open("pmc_data_json", "w") as file:
+with open("pmc_data.json", "w") as file:
     json.dump(pmc_data_json, file)
+
+with open("pmc_data.json", "r") as file:
+    json_data = file.read()
+
+rml.load_pmc_json(json_data.encode("utf-8"), mlp_ptr)
 
 """i_test = np.array([[0.0, 0.0], [0.0, 1.0], [1.0, 0.0]], dtype=np.float32)
 arr = i_test.flatten()
