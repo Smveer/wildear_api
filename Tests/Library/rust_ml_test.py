@@ -28,8 +28,8 @@ c_param = param.ctypes.data_as(ctypes.POINTER(ctypes.c_int))
 
 mlp_ptr = rml.create_pmc_model(c_param, ctypes.c_int(3))
 
-pmc_data_cstring = rml.export_pmc(mlp_ptr)
-pmc_data_str = ctypes.cast(pmc_data_cstring, ctypes.c_char_p).value.decode("utf-8")
+pmc_data_c_string = rml.export_pmc(mlp_ptr)
+pmc_data_str = ctypes.cast(pmc_data_c_string, ctypes.c_char_p).value.decode("utf-8")
 
 print("test string :")
 print(pmc_data_str)
@@ -37,7 +37,6 @@ pmc_data_json = json.loads(pmc_data_str)
 
 with open("pmc_data_json", "w") as file:
     json.dump(pmc_data_json, file)
-    rml.free_string(pmc_data_cstring)
 
 """i_test = np.array([[0.0, 0.0], [0.0, 1.0], [1.0, 0.0]], dtype=np.float32)
 arr = i_test.flatten()
