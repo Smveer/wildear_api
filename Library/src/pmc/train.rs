@@ -20,8 +20,8 @@ extern "C" fn train_pmc_model(model: &mut PMC,
     for _ in 0..iteration as usize{
         // pick random data in the dataset
         let random = rng.gen_range(0..inputs.len());
-        let random_input = &inputs[random];
-        let random_output = &outputs[random];
+        let random_input = inputs[random].clone();
+        let random_output = outputs[random].clone();
 
         // Set neurons inputs with the random dataset
         propagate(model, random_input.as_ptr(), random_input.len() as i32,
@@ -31,37 +31,30 @@ extern "C" fn train_pmc_model(model: &mut PMC,
         for i in 1..=model.neurons_per_layer[model.layers] {
             model.deltas[model.layers][i] = model.neuron_data[model.layers][i] - random_output[i - 1];
             if is_classification {
-                model.deltas[model.layers][i] *= 1.0 - model.neuron_data[model.layers][i].powi(2);
+                model.deltas[model.layers][i] *= 1.0 - model.neuron_data[model.layers][i].powf(2.0);
             }
         }
         // Recursive calc of semi-gradients in the rest
-        for l in (1..=model.layers - 1).rev() {
+        for l in (1..=model.layers).rev() {
             for i in 1..=model.neurons_per_layer[l - 1] {
                 let mut total = 0.0;
                 for j in 1..=model.neurons_per_layer[l] {
                     total += model.weights[l][i][j] * model.deltas[l][j];
                 }
-                model.deltas[l - 1][i] = (1.0 - model.neuron_data[l - 1][i].powi(2)) * total;
+                model.deltas[l - 1][i] = (1.0 - model.neuron_data[l - 1][i].powf(2.0)) * total;
             }
         }
 
         // Update Weights
         for l in 1..=model.layers {
-            println!("TEST : l: {}", l);
             for i in 0..=model.neurons_per_layer[l - 1] {
-                println!("TEST : i: {}", i);
                 for j in  1..=model.neurons_per_layer[l] {
-                    println!("TEST : j: {}", j);
                     model.weights[l][i][j] -= learning_rate * model.neuron_data[l -1][i] * model.deltas[l][j];
-                    println!("TEST : weights[{}][{}][{}] : {}", l, i, j, model.weights[l][i][j]);
                 }
             }
         }
-
-        print_created_model(model);
     }
-
-
+    print_created_model(model);
 }
 
 fn print_created_model(model : &PMC) {

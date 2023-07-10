@@ -2,7 +2,7 @@ use super::structs::*;
 use rand::Rng;
 
 #[no_mangle]
-extern "C" fn create_pmc_model(arr: *mut i32, len: i32) -> *mut PMC {
+extern "C" fn create_pmc_model(arr: *const i32, len: i32) -> *mut PMC {
     let mut model = Box::new(PMC {
         layers :  0,
         neurons_per_layer : Vec::new(),
@@ -20,19 +20,27 @@ extern "C" fn create_pmc_model(arr: *mut i32, len: i32) -> *mut PMC {
 
     // Init weights
     let mut rng = rand::thread_rng();
-    for l in 1..=model.layers {
+    for l in 0..=model.layers {
         let mut layer_weights = Vec::new();
 
-        for _ in 0..=model.neurons_per_layer[l - 1]{
-            let mut neuron_weights = Vec::new();
+        if l == 0 {
+            model.weights.push(layer_weights);
+        } else {
+            for _ in 0..=model.neurons_per_layer[l - 1]{
+                let mut neuron_weights = Vec::new();
 
-            for j in 0..=model.neurons_per_layer[l]{
-                let weight = if j == 0 { 0.0 } else { rng.gen_range(-1.0..1.0) };
-                neuron_weights.push(weight);
+                for j in 0..=model.neurons_per_layer[l]{
+                    let weight = if j == 0 {
+                        0.0 as f32
+                    } else {
+                        rng.gen_range(-1.0..=1.0)
+                    };
+                    neuron_weights.push(weight);
+                }
+                layer_weights.push(neuron_weights);
             }
-            layer_weights.push(neuron_weights);
+            model.weights.push(layer_weights);
         }
-        model.weights.push(layer_weights);
     }
 
     // Init neuron_data : 1.0 / 0.0
@@ -80,15 +88,15 @@ fn print_created_model(model : &PMC) {
     }
 
     // Neurons res
-    println!("PMC: Neuron data :");
+    println!("PMC: Neuron data len : {}", model.neuron_data.len());
     for i in 0..model.neuron_data.len(){
         for j in 0..model.neuron_data[i].len(){
-            println!("-- neuronRes[{}][{}]: {}", i, j, model.neuron_data[i][j]);
+            println!("-- neuronData[{}][{}]: {}", i, j, model.neuron_data[i][j]);
         }
     }
 
     // Deltas
-    println!("PMC: deltas :");
+    println!("PMC: deltas len : {}", model.deltas.len());
     for i in 0..model.deltas.len(){
         for j in 0..model.deltas[i].len(){
             println!("- deltas[{}][{}]: {}", i, j, model.deltas[i][j]);
