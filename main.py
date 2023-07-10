@@ -2,11 +2,11 @@
 @Authors:   RENE Kevin Walson; EL HABACHI Oussama; SINGH Manveer
 @Purpose:   API, main file, in run, waiting for requests
 """
-import base64
+from Utils.utilities import *
+from Models.Audio import Audio
 from fastapi import FastAPI, File, UploadFile, Request
 from fastapi.middleware.cors import CORSMiddleware  # LOCAL USE ONLY
-from Controllers import audioController
-from Models.Audio import Audio
+
 
 app = FastAPI()
 
@@ -32,22 +32,17 @@ async def read_item(base64_audio: Request):
     audio_name = "sample"
     extension = ".webm"
 
-    # Init the audio from json received
-    audio = Audio(await base64_audio.json())
+    audio = Audio(await base64_audio.json())  # Init the audio from json received
 
-    # Set path to audio, add "/" between directory path and filename
     audio.set_path(directory + "/" + audio_name + extension)
 
-    # Create the .webm file
-    audioController.create_webm(audio)
+    create_file_from_audio(audio)  # Create the .webm file
 
-    # Convert .webm to .wav
-    audio = audioController.convert_webm_to_wav(audio)
+    audio = create_wav_audio_from_webm_audio(audio)  # Convert .webm to .wav
 
-    # Create segments and delete .wav
-    audioController.create_image_segments_from_audio(audio)
+    treat_wav_for_wildear(audio.path)
     
-    return "Segments created !"
+    return "Segments specs created !"
 
 
 @app.post('/upload')
@@ -56,4 +51,3 @@ async def upload_file(file: UploadFile = File(...)):
     f.write(await file.read())
     f.close()
     return {"filename": file.filename}
-
