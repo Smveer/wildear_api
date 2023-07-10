@@ -7,3 +7,4 @@
 mod regression;
 mod pmc;
 mod svm;
+mod rbf;
