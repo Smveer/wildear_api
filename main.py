@@ -4,6 +4,7 @@
 """
 
 from Utils.utilities import *
+from Utils.library_overcoat import *
 from Models.Audio import Audio
 from fastapi import FastAPI, File, UploadFile, Request
 from fastapi.middleware.cors import CORSMiddleware  # LOCAL USE ONLY
@@ -45,6 +46,15 @@ async def read_item(base64_audio: Request):
     audio = create_wav_audio_from_webm_audio(audio)  # Convert .webm to .wav
 
     treat_wav_for_wildear(audio.path)
+
+    pmc_ptr = load_pmc("Utils/pmc_data.json", [2, 1])
+
+    prediction = predict_pmc(pmc_ptr, [0.0, 1.0], True)
+
+    del_pmc(pmc_ptr)
+
+    return prediction
+
     
     return "Segments specs created !"
 
