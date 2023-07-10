@@ -1,6 +1,10 @@
 import os
 import subprocess
 from pathlib import Path
+
+import numpy as np
+from PIL import Image
+from numpy import ndarray
 from pydub import AudioSegment
 from Models.Audio import Audio
 import matplotlib.pyplot as plt
@@ -191,3 +195,23 @@ def treat_wav_for_wildear(
 
     for f in files:
         create_png_from_wav(str(f), replace)
+
+
+def flatten_png_file_into_array(
+        file_path: str,
+        greyscale: bool = True
+) -> ndarray:
+    """
+    Return a 2D array of pixels from a png file
+
+        Parameters:
+                    file_path (str): path of the png file to flatten
+                    greyscale (bool): True as default, if True return greyscale array, else return RGB array
+        Returns:
+                array (list): array of pixels
+    """
+    image = Image.open(file_path)
+    i = np.array(image.convert('L')) if greyscale else np.array(image)
+    print(i)
+    image.close()
+    return i
