@@ -217,8 +217,8 @@ def print_python_mlp(model: MyMLP):
             print(f"-- deltas[{i}][{j}]: {model.deltas[i][j]}")
 
 
-print("-------------- PYTHON MLP ------------")
-print_python_mlp(python_mlp)
+# print("-------------- PYTHON MLP ------------")
+# print_python_mlp(python_mlp)
 
 test_1_all_samples_inputs = [
     [0, 0],

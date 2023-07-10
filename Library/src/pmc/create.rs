@@ -47,7 +47,11 @@ extern "C" fn create_pmc_model(arr: *const i32, len: i32) -> *mut PMC {
     for l in 0..=model.layers {
         let mut layer = Vec::new();
         for i in 0..=model.neurons_per_layer[l] {
-            let value = if i == 0 { 1.0 } else { 0.0 };
+            let value = if i == 0 {
+                1.0
+            } else {
+                0.0
+            };
             layer.push(value);
         }
         model.neuron_data.push(layer);
@@ -55,15 +59,15 @@ extern "C" fn create_pmc_model(arr: *const i32, len: i32) -> *mut PMC {
 
     // Init deltas : 0.0
     for l in 0..=model.layers {
-        //let layer_deltas = vec![0.0; model.neurons_per_layer[l] + 1];
         let mut layer_deltas = Vec::new();
         for _ in 0..=model.neurons_per_layer[l]{
-            layer_deltas.push(0.0);
+            let mut delta: f32 = 0.0;
+            layer_deltas.push(delta);
         }
         model.deltas.push(layer_deltas);
     }
 
-    print_created_model(&model);
+    // print_created_model(&model);
 
     let leaked = Box::leak(model);
     leaked

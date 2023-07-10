@@ -22,16 +22,17 @@ extern "C" fn train_pmc_model(model: &mut PMC,
         let random = rng.gen_range(0..inputs.len());
         let random_input = inputs[random].clone();
         let random_output = outputs[random].clone();
+        let input_slice = random_input.as_slice();
 
         // Set neurons inputs with the random dataset
-        propagate(model, random_input.as_ptr(), random_input.len() as i32,
+        propagate(model, input_slice.as_ptr(), random_input.len() as i32,
                   is_classification);
 
        // Recursive calc of semi-gradients in the last layer
         for i in 1..=model.neurons_per_layer[model.layers] {
             model.deltas[model.layers][i] = model.neuron_data[model.layers][i] - random_output[i - 1];
             if is_classification {
-                model.deltas[model.layers][i] *= 1.0 - model.neuron_data[model.layers][i].powf(2.0);
+                model.deltas[model.layers][i] *= 1.0 - model.neuron_data[model.layers][i].powi(2);
             }
         }
         // Recursive calc of semi-gradients in the rest
@@ -46,10 +47,10 @@ extern "C" fn train_pmc_model(model: &mut PMC,
         }
 
         // Update Weights
-        for l in 1..=model.layers {
+        for l in 1..model.layers {
             for i in 0..=model.neurons_per_layer[l - 1] {
                 for j in  1..=model.neurons_per_layer[l] {
-                    model.weights[l][i][j] -= learning_rate * model.neuron_data[l -1][i] * model.deltas[l][j];
+                    model.weights[l][i][j] -= learning_rate * model.neuron_data[l - 1][i] * model.deltas[l][j];
                 }
             }
         }
