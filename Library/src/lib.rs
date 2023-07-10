@@ -1,14 +1,9 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+/*
+    Author: Kevin Walson RENE; Oussama EL HABACHI; Manveer SINGH
+    Date: 02/06/2023
+    Purpose: Lib in rust of Machine Learning models
+*/
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+mod regression;
+mod pmc;
+mod svm;

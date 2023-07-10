@@ -2,6 +2,7 @@
 @Authors:   RENE Kevin Walson; EL HABACHI Oussama; SINGH Manveer
 @Purpose:   API, main file, in run, waiting for requests
 """
+
 from Utils.utilities import *
 from Models.Audio import Audio
 from fastapi import FastAPI, File, UploadFile, Request
@@ -24,6 +25,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 # LOCAL USE ONLY - END
+
+# LOAD WD LIBRARY
+wd = ctypes.CDLL(r"Library/target/debug/libLibrary.dylib")
 
 
 @app.post("/audio")
