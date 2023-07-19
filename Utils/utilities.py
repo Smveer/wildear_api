@@ -1,9 +1,10 @@
-import os
-import subprocess
-from pathlib import Path
 
+import os
+import ctypes
+import subprocess
 import numpy as np
 from PIL import Image
+from pathlib import Path
 from numpy import ndarray
 from pydub import AudioSegment
 from Models.Audio import Audio
@@ -219,7 +220,18 @@ def treat_wav_for_wildear(
             str(f).replace(Audio.get_file_extension_from_path(path), ".png"))
 
 
-def rust_ptr_to_np_array(rust_ptr: ctypes.POINTER(ctypes.c_float), size: int):
+def rust_ptr_to_np_array(
+        rust_ptr: ctypes.POINTER(ctypes.c_float),
+        size: int
+) -> ndarray:
+    """
+    Return a numpy array from a rust pointer
+        parameters:
+                    rust_ptr (ctypes.POINTER(ctypes.c_float)): pointer to a rust array
+                    size (int): size of the array
+        returns:
+                np_array (ndarray): numpy array
+    """
     np_array = np.zeros(size, dtype=np.float32)
     for i in range(size):
         np_array[i] = rust_ptr[i]
