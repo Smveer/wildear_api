@@ -157,7 +157,7 @@ def create_pieces_from_wav(
     """
     size_in_milliseconds = 500 if size_in_milliseconds < 0 else size_in_milliseconds
 
-    sound = AudioSegment.from_wav(path).set_channels(1)  # Get sound segments from file, 1 segment = 1 ms
+    sound = get_mono_channel_sound_segments_from_wav(path)  # Get sound segments from file, 1 segment = 1 ms
     pieces = sound[::size_in_milliseconds]  # Divide sound into pieces of size_in_milliseconds size
 
     for i, piece in enumerate(pieces):
@@ -174,10 +174,30 @@ def create_pieces_from_wav(
         os.remove(path)
 
 
+def flatten_png_file_into_array(
+        file_path: str,
+        greyscale: bool = True
+) -> ndarray:
+    """
+    Return a 2D array of pixels from a png file
+
+        Parameters:
+                    file_path (str): path of the png file to flatten
+                    greyscale (bool): True as default, if True return greyscale array, else return RGB array
+        Returns:
+                array (list): array of pixels
+    """
+    image = Image.open(file_path)
+    i = np.array(image.convert('L'), dtype=np.float32) if greyscale else np.array(image, dtype=np.float32)
+    print(i)
+    image.close()
+    return i
+
+
 def treat_wav_for_wildear(
         path: str,
         replace: bool = True
-):
+) -> list:
     """
     Create png images after cutting the wav file in the Wild Ear way
 
@@ -195,23 +215,5 @@ def treat_wav_for_wildear(
 
     for f in files:
         create_png_from_wav(str(f), replace)
-
-
-def flatten_png_file_into_array(
-        file_path: str,
-        greyscale: bool = True
-) -> ndarray:
-    """
-    Return a 2D array of pixels from a png file
-
-        Parameters:
-                    file_path (str): path of the png file to flatten
-                    greyscale (bool): True as default, if True return greyscale array, else return RGB array
-        Returns:
-                array (list): array of pixels
-    """
-    image = Image.open(file_path)
-    i = np.array(image.convert('L')) if greyscale else np.array(image)
-    print(i)
-    image.close()
-    return i
+        yield flatten_png_file_into_array(
+            str(f).replace(Audio.get_file_extension_from_path(path), ".png"))
