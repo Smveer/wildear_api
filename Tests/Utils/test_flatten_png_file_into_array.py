@@ -1,10 +1,11 @@
-import pytest
 from Utils.utilities import *
 
 
-path = "Ressources/Dataset/bear_roar/bear_roar.png"
+path = "red.png"
 
-matrix = flatten_png_file_into_array(str(f), greyscale=True)
+matrix = flatten_png_file_into_array(path, greyscale=True)
+
+print(matrix)
 
 """files = Path(
     Audio.get_directory_path_from_path(path)

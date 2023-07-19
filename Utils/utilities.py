@@ -190,9 +190,9 @@ def flatten_png_file_into_array(
     """
     image = Image.open(file_path)
     i = np.array(image.convert('L'), dtype=np.float32) if greyscale else np.array(image, dtype=np.float32)
-    print(i)
+    # print(i)
     image.close()
-    return i
+    return i.flatten()
 
 
 def treat_wav_for_wildear(
