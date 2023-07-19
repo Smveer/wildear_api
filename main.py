@@ -2,7 +2,7 @@
 @Authors:   RENE Kevin Walson; EL HABACHI Oussama; SINGH Manveer
 @Purpose:   API, main file, in run, waiting for requests
 """
-
+import numpy as np
 from Utils.utilities import *
 from Utils.library_overcoat import *
 from Models.Audio import Audio
@@ -49,11 +49,12 @@ async def read_item(base64_audio: Request):
 
     pmc_ptr = load_pmc("Utils/pmc_data.json", [2, 1])
 
-    prediction = predict_pmc(pmc_ptr, [0.0, 1.0], True)
+    prediction_ptr = predict_pmc(pmc_ptr, [0.0, 1.0], True)
+    predictions_list = rust_ptr_to_np_array(prediction_ptr, 3)
 
     del_pmc(pmc_ptr)
 
-    return prediction
+    return np.argmax(predictions_list)
 
     
     return "Segments specs created !"

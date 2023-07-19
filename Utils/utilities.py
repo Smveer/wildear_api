@@ -217,3 +217,10 @@ def treat_wav_for_wildear(
         create_png_from_wav(str(f), replace)
         yield flatten_png_file_into_array(
             str(f).replace(Audio.get_file_extension_from_path(path), ".png"))
+
+
+def rust_ptr_to_np_array(rust_ptr: ctypes.POINTER(ctypes.c_float), size: int):
+    np_array = np.zeros(size, dtype=np.float32)
+    for i in range(size):
+        np_array[i] = rust_ptr[i]
+    return np_array
