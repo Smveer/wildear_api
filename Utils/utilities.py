@@ -1,9 +1,10 @@
+import json
 import os
+import ctypes
 import subprocess
-from pathlib import Path
-
 import numpy as np
 from PIL import Image
+from pathlib import Path
 from numpy import ndarray
 from pydub import AudioSegment
 from Models.Audio import Audio
@@ -157,7 +158,7 @@ def create_pieces_from_wav(
     """
     size_in_milliseconds = 500 if size_in_milliseconds < 0 else size_in_milliseconds
 
-    sound = AudioSegment.from_wav(path).set_channels(1)  # Get sound segments from file, 1 segment = 1 ms
+    sound = get_mono_channel_sound_segments_from_wav(path)  # Get sound segments from file, 1 segment = 1 ms
     pieces = sound[::size_in_milliseconds]  # Divide sound into pieces of size_in_milliseconds size
 
     for i, piece in enumerate(pieces):
@@ -174,29 +175,6 @@ def create_pieces_from_wav(
         os.remove(path)
 
 
-def treat_wav_for_wildear(
-        path: str,
-        replace: bool = True
-):
-    """
-    Create png images after cutting the wav file in the Wild Ear way
-
-        Parameters:
-                    path (str): path of the audio to transform into images
-                    replace (bool): True as default, if True delete original files after all transformations
-    """
-    create_pieces_from_wav(path, replace)
-
-    files = Path(
-        Audio.get_directory_path_from_path(path)
-    ).glob(
-        Audio.get_filename_from_path(path, False) + "_*" + Audio.get_file_extension_from_path(path)
-    )
-
-    for f in files:
-        create_png_from_wav(str(f), replace)
-
-
 def flatten_png_file_into_array(
         file_path: str,
         greyscale: bool = True
@@ -211,7 +189,70 @@ def flatten_png_file_into_array(
                 array (list): array of pixels
     """
     image = Image.open(file_path)
-    i = np.array(image.convert('L')) if greyscale else np.array(image)
-    print(i)
+    i = np.array(image.convert('L'), dtype=np.float32) if greyscale else np.array(image, dtype=np.float32)
+    # print(i)
     image.close()
-    return i
+    return (i/255).flatten()
+
+
+def treat_wav_for_wildear(
+        path: str,
+        replace: bool = True
+) -> list:
+    """
+    Create png images after cutting the wav file in the Wild Ear way
+
+        Parameters:
+                    path (str): path of the audio to transform into images
+                    replace (bool): True as default, if True delete original files after all transformations
+    """
+    matrixes = []
+    create_pieces_from_wav(path, replace)
+
+    files = Path(
+        Audio.get_directory_path_from_path(path)
+    ).glob(
+        Audio.get_filename_from_path(path, False) + "_*" + Audio.get_file_extension_from_path(path)
+    )
+
+    for f in files:
+        create_png_from_wav(str(f), replace)
+        matrixes.append(
+            flatten_png_file_into_array(
+                str(f).replace(Audio.get_file_extension_from_path(path),".png")
+            )
+        )
+
+    return matrixes
+
+
+def rust_ptr_to_np_array(
+        rust_ptr: ctypes.POINTER(ctypes.c_float),
+        size: int
+) -> ndarray:
+    """
+    Return a numpy array from a rust pointer
+        parameters:
+                    rust_ptr (ctypes.POINTER(ctypes.c_float)): pointer to a rust array
+                    size (int): size of the array
+        returns:
+                np_array (ndarray): numpy array
+    """
+    np_array = np.zeros(size, dtype=np.float32)
+    for i in range(size):
+        np_array[i] = rust_ptr[i]
+    return np_array
+
+
+def create_json_file_from_json_string(
+        json_string: str,
+        path: str
+):
+    """
+    Create a json file from a json string
+        parameters:
+                    json_string (str): json string
+                    path (str): path of the json file to create
+    """
+    with open(path, "w") as file:
+        json.dump(json.loads(json_string), file)

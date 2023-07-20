@@ -2,7 +2,7 @@
 @Authors:   RENE Kevin Walson; EL HABACHI Oussama; SINGH Manveer
 @Purpose:   API, main file, in run, waiting for requests
 """
-
+import numpy as np
 from Utils.utilities import *
 from Utils.library_overcoat import *
 from Models.Audio import Audio
@@ -27,36 +27,32 @@ app.add_middleware(
 )
 # LOCAL USE ONLY - END
 
-# LOAD WD LIBRARY
-wd = ctypes.CDLL(r"Library/target/debug/libLibrary.dylib")
-
 
 @app.post("/audio")
 async def read_item(base64_audio: Request):
-    directory = "Data"
+    directory = "Data/"
     audio_name = "sample"
     extension = ".webm"
 
     audio = Audio(await base64_audio.json())  # Init the audio from json received
 
-    audio.set_path(directory + "/" + audio_name + extension)
+    audio.set_path(directory + audio_name + extension)
 
     create_file_from_audio(audio)  # Create the .webm file
 
-    audio = create_wav_audio_from_webm_audio(audio)  # Convert .webm to .wav
+    audio = create_wav_audio_from_webm_audio(audio, replace=True)  # Convert .webm to .wav
 
-    treat_wav_for_wildear(audio.path)
+    treat_wav_for_wildear(audio.path, replace=True)  # Create the images from the .wav file
 
-    pmc_ptr = load_pmc("Utils/pmc_data.json", [2, 1])
+    pmc_ptr = load_pmc("Utils/model_001.json", [2, 1])
 
-    prediction = predict_pmc(pmc_ptr, [0.0, 1.0], True)
+    prediction_ptr = predict_pmc(pmc_ptr, [0.0, 1.0], True)
+
+    predictions_list = rust_ptr_to_np_array(prediction_ptr, 3)
 
     del_pmc(pmc_ptr)
 
-    return prediction
-
-    
-    return "Segments specs created !"
+    return np.argmax(predictions_list)
 
 
 @app.post('/upload')
