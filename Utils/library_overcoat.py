@@ -3,7 +3,7 @@ import numpy as np
 from typing import List
 
 # LOAD Rust ML LIBRARY
-rml = ctypes.CDLL(r"../Library/target/debug/librust_ml.dylib")
+rml = ctypes.CDLL(r"./Library/target/debug/librust_ml.dylib")
 
 # Initialise RML functions
 rml.delete_mlp_model.argtypes = [ctypes.c_void_p]

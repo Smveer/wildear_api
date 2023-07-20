@@ -206,6 +206,7 @@ def treat_wav_for_wildear(
                     path (str): path of the audio to transform into images
                     replace (bool): True as default, if True delete original files after all transformations
     """
+    matrixes = []
     create_pieces_from_wav(path, replace)
 
     files = Path(
@@ -216,8 +217,13 @@ def treat_wav_for_wildear(
 
     for f in files:
         create_png_from_wav(str(f), replace)
-        yield flatten_png_file_into_array(
-            str(f).replace(Audio.get_file_extension_from_path(path), ".png"))
+        matrixes.append(
+            flatten_png_file_into_array(
+                str(f).replace(Audio.get_file_extension_from_path(path),".png")
+            )
+        )
+
+    return matrixes
 
 
 def rust_ptr_to_np_array(
