@@ -50,3 +50,11 @@ def predict_pmc(mlp_ptr: ctypes.c_void_p, input_x: List[float], is_classificatio
 
     output_ptr = rml.predict_pmc(mlp_ptr, input_ptr, c_length, ctypes.c_bool(c_is_classification))
     return output_ptr[0]
+
+
+def export_pmc_as_json_string(
+        mlp_ptr: ctypes.c_void_p
+):
+    jstring = rml.export_pmc(mlp_ptr)
+    return ctypes.cast(jstring, ctypes.c_char_p).value.decode("utf-8")
+

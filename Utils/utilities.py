@@ -1,4 +1,4 @@
-
+import json
 import os
 import ctypes
 import subprocess
@@ -192,7 +192,7 @@ def flatten_png_file_into_array(
     i = np.array(image.convert('L'), dtype=np.float32) if greyscale else np.array(image, dtype=np.float32)
     # print(i)
     image.close()
-    return i.flatten()
+    return (i/255).flatten()
 
 
 def treat_wav_for_wildear(
@@ -236,3 +236,17 @@ def rust_ptr_to_np_array(
     for i in range(size):
         np_array[i] = rust_ptr[i]
     return np_array
+
+
+def create_json_file_from_json_string(
+        json_string: str,
+        path: str
+):
+    """
+    Create a json file from a json string
+        parameters:
+                    json_string (str): json string
+                    path (str): path of the json file to create
+    """
+    with open(path, "w") as file:
+        json.dump(json.loads(json_string), file)
