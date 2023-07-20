@@ -35,6 +35,5 @@ extern "C" fn train_linear_regression_model(
         ml.coefficient = sum_gap / sum_squared;
         ml.constant = mean_output - ml.coefficient * mean_input;
         println!("LRM: Trained: {} and {}", ml.coefficient, ml.constant);
-        Box::into_raw(ml);
     }
 }
