@@ -23,6 +23,7 @@ rml.predict_pmc.restype = ctypes.POINTER(ctypes.c_float)
 rml.export_pmc.argtypes = [ctypes.c_void_p]
 rml.export_pmc.restype = ctypes.c_char_p
 rml.load_pmc_json.argtypes = [ctypes.c_char_p, ctypes.c_void_p]
+rml.load_pmc_json.restype = ctypes.c_void_p
 
 
 def del_pmc(ptr: ctypes.c_void_p):
@@ -49,7 +50,7 @@ def predict_pmc(mlp_ptr: ctypes.c_void_p, input_x: List[float], is_classificatio
     c_is_classification = ctypes.c_bool(is_classification)
 
     output_ptr = rml.predict_pmc(mlp_ptr, input_ptr, c_length, ctypes.c_bool(c_is_classification))
-    return output_ptr[0]
+    return output_ptr
 
 
 def export_pmc_as_json_string(

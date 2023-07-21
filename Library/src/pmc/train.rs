@@ -17,7 +17,7 @@ extern "C" fn train_pmc_model(model: &mut PMC,
 
     let mut rng = rand::thread_rng();
 
-    for _ in 0..iteration as usize{
+    for k in 0..iteration as usize{
         // pick random data in the dataset
         let random = rng.gen_range(0..inputs.len());
         let random_input = inputs[random].clone();
