@@ -1,6 +1,8 @@
 from typing import List
 from Utils.utilities import *
 from Utils.library_overcoat import rml, del_pmc, export_pmc_as_json_string
+from joblib import Parallel, delayed
+
 
 dataset_directory = "../Resources/Dataset/"
 
@@ -71,7 +73,7 @@ print(len(i))
 print(len(i[0]))
 
 # Test
-param = np.array([2, 1], dtype=np.int32)
+param = np.array([2500, 15, 2, 3], dtype=np.int32)
 c_param = param.ctypes.data_as(ctypes.POINTER(ctypes.c_int))
 mlp_ptr = rml.create_pmc_model(c_param, ctypes.c_int(len(param)))
 
@@ -79,11 +81,11 @@ train_pmc_model(
     mlp_ptr,
     i, len(i), len(i[0]),
     o, len(o), len(o[0]),
-    0.01, 100000, True
+    0.1, 5000, True
 )
 
 model_json = export_pmc_as_json_string(mlp_ptr)
 print(model_json)
-create_json_file_from_json_string(model_json, "model_001.json")
+create_json_file_from_json_string(model_json, "model_003.json")
 
 del_pmc(mlp_ptr)

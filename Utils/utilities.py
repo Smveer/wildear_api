@@ -66,6 +66,7 @@ def create_wav_audio_from_webm_audio(
             "44100",
             "-ac",
             "2",
+            "-hide_banner",
             new_path
         ]
     )
